@@ -150,7 +150,7 @@ For this example, there are two serverless plugins used:
 
 ## Eject from the Lift plugin
 
-A very cool aspect is the [eject](https://github.com/getlift/lift#ejecting)|. In case your project grows beyond the plugin, you can eject from `Lift` at any time, as the plugin is based on `CloudFormation`. You're not chained to Lift at all.
+A very cool aspect is the [eject](https://github.com/getlift/lift#ejecting). In case your project grows beyond the plugin, you can eject from `Lift` at any time, as the plugin is based on `CloudFormation`. You're not chained to Lift at all.
 
 ## Remove service
 
