@@ -1,0 +1,75 @@
+service: memes
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: ruby2.7
+  memorySize: 512
+  region: 'us-east-1'
+  timeout: 10
+  environment:
+    stage: ${sls:stage}
+    region: ${self:provider.region}
+    service: ${self:service}
+  logRetentionInDays: 30
+  tags:
+    Application: ${self:service}
+    Stage: ${sls:stage}
+  lambdaHashingVersion: 20201221
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+          Resource:
+            - !GetAtt Table.Arn
+
+constructs:
+    memes:
+        type: storage
+
+functions:
+    s3-trigger:
+        handler: src/handlers/s3-trigger/handler.run
+        events:
+         - s3:
+            bucket: ${construct:memes.bucketName}
+            event: s3:ObjectCreated:*
+            rules:
+                - suffix: .png
+            existing: true
+        environment:
+            BUCKET_NAME: ${construct:memes.bucketName}
+            TABLE_NAME: ${self:custom.tableName}
+
+
+plugins:
+  - serverless-ruby-layer
+  - serverless-lift
+
+custom:
+  tableName: ${self:service}-${sls:stage}
+  rubyLayer:
+    include_functions:
+      - s3-trigger
+
+resources:
+  Resources:
+    Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        Tags:
+          - Key: Application
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${sls:stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
